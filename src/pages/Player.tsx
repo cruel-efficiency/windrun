@@ -207,10 +207,12 @@ export function PlayerPage() {
               <span className={styles.statLabel}>{player.region} Rank</span>
             </div>
           )}
-          <div className={styles.statBox}>
-            <span className={styles.statValue}>{formatPercentile(player.percentile)}</span>
-            <span className={styles.statLabel}>Percentile</span>
-          </div>
+          {player.percentile != null && player.percentile >= 0 && !isNaN(player.percentile) && (
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{formatPercentile(player.percentile)}</span>
+              <span className={styles.statLabel}>Percentile</span>
+            </div>
+          )}
           <div className={styles.statBox}>
             <span className={styles.statValue}>{player.wins + player.losses}</span>
             <span className={styles.statLabel}>Games</span>
