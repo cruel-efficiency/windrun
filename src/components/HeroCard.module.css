@@ -120,6 +120,7 @@
 .mini {
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 /* ============================================

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { PageShell } from '../components/PageShell'
 import {
   HeroMini,
@@ -212,11 +212,6 @@ export function AbilityByHeroPage() {
     navigate(`/heroes/${heroId}`)
   }
 
-  const handleAbilityClick = (abilityId: number, e: React.MouseEvent) => {
-    e.stopPropagation()
-    navigate(`/abilities/${abilityId}`)
-  }
-
   if (error) {
     return (
       <PageShell title="Abilities by Hero">
@@ -271,7 +266,7 @@ export function AbilityByHeroPage() {
               onClick={() => handleHeroClick(hero.heroId)}
             >
               <div className={styles.heroCol}>
-                <HeroMini name={hero.heroName} picture={hero.heroPicture} height={32} />
+                <HeroMini name={hero.heroName} picture={hero.heroPicture} height={44} />
                 <span className={styles.heroName}>{hero.heroName}</span>
               </div>
               <div className={styles.bodyCol}>
@@ -289,10 +284,11 @@ export function AbilityByHeroPage() {
               </div>
               <div className={styles.abilitiesCol}>
                 {hero.abilities.map(ability => (
-                  <div
+                  <Link
                     key={ability.abilityId}
+                    to={`/abilities/${ability.abilityId}`}
                     className={styles.abilityItem}
-                    onClick={(e) => handleAbilityClick(ability.abilityId, e)}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <AbilityIcon
                       id={ability.abilityId}
@@ -312,7 +308,7 @@ export function AbilityByHeroPage() {
                       />
                       <span className={styles.avgPickStat}>{ability.avgPickPos.toFixed(1)}</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
               <div className={styles.avgCol}>

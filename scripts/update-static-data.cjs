@@ -282,6 +282,31 @@ async function fetchJson(url) {
   return response.json();
 }
 
+/**
+ * Sort object keys numerically and return a new object with sorted keys.
+ * This ensures consistent output ordering for diffs.
+ */
+function sortByNumericKey(obj) {
+  const sorted = {};
+  const keys = Object.keys(obj).sort((a, b) => parseInt(a) - parseInt(b));
+  for (const key of keys) {
+    sorted[key] = obj[key];
+  }
+  return sorted;
+}
+
+/**
+ * Sort object keys alphabetically and return a new object with sorted keys.
+ */
+function sortByStringKey(obj) {
+  const sorted = {};
+  const keys = Object.keys(obj).sort();
+  for (const key of keys) {
+    sorted[key] = obj[key];
+  }
+  return sorted;
+}
+
 async function updateHeroes() {
   console.log('Fetching heroes...');
   const { data } = await fetchJson(`${API_BASE}/api/v2/static/heroes`);
@@ -329,13 +354,13 @@ export interface Hero {
 }
 
 /** Map of hero ID (number as string key) to Hero object */
-export const heroesById: Record<string, Hero> = ${JSON.stringify(heroesById, null, 2)}
+export const heroesById: Record<string, Hero> = ${JSON.stringify(sortByNumericKey(heroesById), null, 2)}
 
 /** Map of hero shortName to Hero object */
-export const heroesByShortName: Record<string, Hero> = ${JSON.stringify(heroesByShortName, null, 2)}
+export const heroesByShortName: Record<string, Hero> = ${JSON.stringify(sortByStringKey(heroesByShortName), null, 2)}
 
 /** Map of hero picture name to Hero object */
-export const heroesByPicture: Record<string, Hero> = ${JSON.stringify(heroesByPicture, null, 2)}
+export const heroesByPicture: Record<string, Hero> = ${JSON.stringify(sortByStringKey(heroesByPicture), null, 2)}
 
 /** Get hero by numeric ID (fast lookup) */
 export function getHeroById(id: number): Hero | undefined {
@@ -386,15 +411,15 @@ export interface Ability {
   tooltip: string | null
   valveId: number
   ownerHeroId: number | null
-  hasScepter: boolean
-  hasShard: boolean
+  hasScepter: boolean | null
+  hasShard: boolean | null
 }
 
 /** Map of ability valveId (number as string key) to Ability object */
-export const abilitiesById: Record<string, Ability> = ${JSON.stringify(abilitiesById, null, 2)}
+export const abilitiesById: Record<string, Ability> = ${JSON.stringify(sortByNumericKey(abilitiesById), null, 2)}
 
 /** Map of ability shortName to Ability object */
-export const abilitiesByShortName: Record<string, Ability> = ${JSON.stringify(abilitiesByShortName, null, 2)}
+export const abilitiesByShortName: Record<string, Ability> = ${JSON.stringify(sortByStringKey(abilitiesByShortName), null, 2)}
 
 /** Get ability by valveId (fast lookup) */
 export function getAbilityById(id: number): Ability | undefined {
@@ -455,10 +480,10 @@ export interface Item {
 }
 
 /** Map of item valveId (number as string key) to Item object */
-export const itemsById: Record<string, Item> = ${JSON.stringify(itemsById, null, 2)}
+export const itemsById: Record<string, Item> = ${JSON.stringify(sortByNumericKey(itemsById), null, 2)}
 
 /** Map of item name to Item object */
-export const itemsByName: Record<string, Item> = ${JSON.stringify(itemsByName, null, 2)}
+export const itemsByName: Record<string, Item> = ${JSON.stringify(sortByStringKey(itemsByName), null, 2)}
 
 /** Get item by valveId (fast lookup) */
 export function getItemById(id: number): Item | undefined {

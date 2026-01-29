@@ -26,7 +26,7 @@
 
 .heroRow {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   padding: var(--space-sm) var(--space-md);
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
@@ -38,11 +38,11 @@
 }
 
 .heroCol {
-  width: 180px;
+  width: 310px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-md);
 }
 
 .heroName {
@@ -64,7 +64,7 @@
 }
 
 .abilitiesCol {
-  flex: 1;
+  flex: 0 1 500px;
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
@@ -78,10 +78,16 @@
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-sm);
   transition: background var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
 }
 
 .abilityItem:hover {
   background: rgba(45, 212, 191, 0.1);
+}
+
+.abilityItem:visited {
+  color: inherit;
 }
 
 .abilityName {

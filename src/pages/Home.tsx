@@ -1,7 +1,10 @@
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
 import * as d3 from 'd3'
+import { Link } from 'react-router-dom'
 import { PageShell } from '../components/PageShell'
 import { usePersistedQuery } from '../api'
+import { getHeroById } from '../data'
+import { heroMiniUrl } from '../config'
 import styles from './Home.module.css'
 
 interface PlayerStats {
@@ -11,6 +14,15 @@ interface PlayerStats {
   gamesPlayed: number
   overallRank: number
   region?: string
+}
+
+interface RecommendedMatch {
+  matchId: number
+  region: string
+  tags: string[]
+  avgRank: number
+  radiant: number[]
+  dire: number[]
 }
 
 interface HomeApiResponse {
@@ -27,12 +39,16 @@ interface HomeApiResponse {
     mostGamesAllTime?: {
       players: PlayerStats[]
     }
+    recommendedReplays?: {
+      matches: RecommendedMatch[]
+    }
   }
 }
 
 export function HomePage() {
   const { data: apiResponse, isLoading } = usePersistedQuery<HomeApiResponse>('/home')
   const chartRef = useRef<SVGSVGElement>(null)
+  const [replayPage, setReplayPage] = useState(0)
 
   // Merge weekly games and players data by date
   const chartData = useMemo(() => {
@@ -76,6 +92,29 @@ export function HomePage() {
     }
   }, [chartData])
 
+  // Format tag with spaces (e.g., "BLOODBATH" -> "BLOOD BATH")
+  const formatTag = (tag: string): string => {
+    return tag
+      .replace(/-/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+      .replace(/highskill/gi, 'HIGH SKILL')
+      .toUpperCase()
+  }
+
+  // Get tag color based on type
+  const getTagColor = (tag: string): string => {
+    const tagLower = tag.toLowerCase()
+    if (tagLower.includes('blood')) return '#ef5350'
+    if (tagLower.includes('stomp')) return '#ab47bc'
+    if (tagLower.includes('comeback')) return '#66bb6a'
+    if (tagLower.includes('close')) return '#ffa726'
+    if (tagLower.includes('long')) return '#42a5f5'
+    if (tagLower.includes('short')) return '#26c6da'
+    if (tagLower.includes('high')) return '#ffca28'
+    return 'var(--color-accent2)'
+  }
+
   // D3 chart rendering
   useEffect(() => {
     if (!chartRef.current || !chartData.length) return
@@ -83,8 +122,8 @@ export function HomePage() {
     const svg = d3.select(chartRef.current)
     svg.selectAll('*').remove()
 
-    const containerWidth = chartRef.current.parentElement?.clientWidth ?? 1000
-    const width = Math.min(containerWidth, 1100)
+    const containerWidth = chartRef.current.parentElement?.clientWidth ?? 1300
+    const width = Math.min(containerWidth - 32, 1250) // Account for padding
     const height = 400
     const margin = { top: 20, right: 60, bottom: 50, left: 60 }
     const innerWidth = width - margin.left - margin.right
@@ -114,6 +153,30 @@ export function HomePage() {
     // Bar width calculation
     const barWidth = Math.max(1, (innerWidth / chartData.length) * 0.7)
 
+    // Create tooltip
+    const tooltip = d3.select(chartRef.current.parentElement)
+      .append('div')
+      .attr('class', 'chart-tooltip')
+      .style('position', 'absolute')
+      .style('visibility', 'hidden')
+      .style('background', 'var(--color-bg-elevated)')
+      .style('border', '1px solid var(--color-border)')
+      .style('border-radius', '4px')
+      .style('padding', '8px 12px')
+      .style('font-size', '12px')
+      .style('pointer-events', 'none')
+      .style('z-index', '10')
+
+    // Vertical hover line
+    const hoverLine = g.append('line')
+      .attr('class', 'hover-line')
+      .attr('y1', 0)
+      .attr('y2', innerHeight)
+      .attr('stroke', 'var(--color-text-muted)')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '4,4')
+      .style('visibility', 'hidden')
+
     // Draw bars for games
     g.selectAll('.bar')
       .data(gamesData)
@@ -126,6 +189,48 @@ export function HomePage() {
       .attr('height', d => innerHeight - yGamesScale(d.games!))
       .attr('fill', 'var(--color-accent)')
       .attr('opacity', 0.6)
+
+    // Overlay for mouse tracking
+    g.append('rect')
+      .attr('class', 'overlay')
+      .attr('width', innerWidth)
+      .attr('height', innerHeight)
+      .attr('fill', 'none')
+      .attr('pointer-events', 'all')
+      .on('mousemove', function(event) {
+        const [mx] = d3.pointer(event)
+        const date = xScale.invert(mx)
+        const bisect = d3.bisector((d: typeof chartData[0]) => d.date).left
+        const idx = bisect(chartData, date, 1)
+        const d0 = chartData[idx - 1]
+        const d1 = chartData[idx]
+        const d = d1 && (date.getTime() - d0.date.getTime() > d1.date.getTime() - date.getTime()) ? d1 : d0
+
+        if (d) {
+          const x = xScale(d.date)
+          hoverLine.attr('x1', x).attr('x2', x).style('visibility', 'visible')
+
+          const formatDate = d3.timeFormat('%b %d, %Y')
+          tooltip
+            .style('visibility', 'visible')
+            .html(`
+              <div style="color: var(--color-text); margin-bottom: 4px; font-weight: bold;">${formatDate(d.date)}</div>
+              <div style="color: var(--color-accent);">Games: ${d.games?.toLocaleString() ?? '—'}</div>
+              <div style="color: var(--color-accent2);">Players: ${d.players?.toLocaleString() ?? '—'}</div>
+            `)
+
+          // Position tooltip on left side if near right edge
+          const tooltipWidth = 150
+          const isNearRightEdge = event.offsetX > width - tooltipWidth - 50
+          tooltip
+            .style('left', isNearRightEdge ? `${event.offsetX - tooltipWidth - 15}px` : `${event.offsetX + 15}px`)
+            .style('top', `${event.offsetY - 10}px`)
+        }
+      })
+      .on('mouseleave', function() {
+        hoverLine.style('visibility', 'hidden')
+        tooltip.style('visibility', 'hidden')
+      })
 
     // Draw line for players
     const line = d3
@@ -229,6 +334,11 @@ export function HomePage() {
       .attr('fill', 'var(--color-text-muted)')
       .attr('font-size', '11px')
       .text('Players/week')
+
+    // Cleanup tooltip on unmount
+    return () => {
+      tooltip.remove()
+    }
   }, [chartData])
 
   return (
@@ -262,11 +372,11 @@ export function HomePage() {
           </div>
           <div className={styles.statCard}>
             <span className={styles.statValue}>{stats.latestPlayers.toLocaleString()}</span>
-            <span className={styles.statLabel}>Unique Players Last Week</span>
+            <span className={styles.statLabel}>Unique Players This Week</span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statValue}>{stats.recentGames.toLocaleString()}</span>
-            <span className={styles.statLabel}>Games Last Month</span>
+            <span className={styles.statLabel}>Games In Last 30 Days</span>
           </div>
         </div>
       )}
@@ -286,7 +396,7 @@ export function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {apiResponse.data.mostGamesLast30Days.players.slice(0, 10).map((player, index) => (
+                {apiResponse.data.mostGamesLast30Days.players.slice(0, 25).map((player, index) => (
                   <tr key={player.steamId}>
                     <td className={styles.playerCell}>
                       <span className={styles.rank}>{index + 1}</span>
@@ -317,7 +427,7 @@ export function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {apiResponse.data.mostGamesAllTime.players.slice(0, 10).map((player, index) => (
+                {apiResponse.data.mostGamesAllTime.players.slice(0, 25).map((player, index) => (
                   <tr key={player.steamId}>
                     <td className={styles.playerCell}>
                       <span className={styles.rank}>{index + 1}</span>
@@ -332,6 +442,83 @@ export function HomePage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Recommended Replays */}
+        {apiResponse?.data?.recommendedReplays?.matches && apiResponse.data.recommendedReplays.matches.length > 0 && (
+          <div className={styles.tableSection}>
+            <h3 className={styles.tableTitle}>Recommended Replays</h3>
+            <div className={styles.replaysGrid}>
+              {apiResponse.data.recommendedReplays.matches
+                .slice(replayPage * 11, replayPage * 11 + 11)
+                .map(match => (
+                  <Link
+                    key={match.matchId}
+                    to={`/matches/${match.matchId}`}
+                    className={styles.replayCard}
+                  >
+                    <div className={styles.replayInfo}>
+                      <span className={styles.replayRegion}>{match.region.toUpperCase()}</span>
+                      {match.tags?.[0] && (
+                        <span
+                          className={styles.replayTag}
+                          style={{ color: getTagColor(match.tags[0]) }}
+                        >
+                          {formatTag(match.tags[0])}
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.replayRankCol}>
+                      <span className={styles.replayRankLabel}>Avg Rank</span>
+                      <span className={styles.replayRank}>{match.avgRank.toLocaleString()}</span>
+                    </div>
+                    <div className={styles.replayTeams}>
+                      <div className={styles.replayTeamRadiant}>
+                        {match.radiant.map((heroId, idx) => {
+                          const hero = getHeroById(heroId)
+                          return hero ? (
+                            <img
+                              key={idx}
+                              src={heroMiniUrl(hero.picture)}
+                              alt={hero.englishName}
+                              className={styles.replayHero}
+                              title={hero.englishName}
+                            />
+                          ) : null
+                        })}
+                      </div>
+                      <div className={styles.replayTeamDire}>
+                        {match.dire.map((heroId, idx) => {
+                          const hero = getHeroById(heroId)
+                          return hero ? (
+                            <img
+                              key={idx}
+                              src={heroMiniUrl(hero.picture)}
+                              alt={hero.englishName}
+                              className={styles.replayHero}
+                              title={hero.englishName}
+                            />
+                          ) : null
+                        })}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+            {apiResponse.data.recommendedReplays.matches.length > 11 && (
+              <div className={styles.replaysPagination}>
+                {Array.from({ length: Math.ceil(apiResponse.data.recommendedReplays.matches.length / 11) }).map((_, idx) => (
+                  <button
+                    key={idx}
+                    className={`${styles.pageButton} ${replayPage === idx ? styles.pageButtonActive : ''}`}
+                    onClick={() => setReplayPage(idx)}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

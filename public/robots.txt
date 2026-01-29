@@ -1,0 +1,18 @@
+# robots.txt for windrun.io
+
+User-agent: *
+Disallow: /administrator/
+Disallow: /wp-admin/
+Disallow: /matches
+Disallow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /matches
+Disallow: /players
+
+User-agent: Googlebot
+Allow: /
+Disallow: /matches
+Disallow: /players
+

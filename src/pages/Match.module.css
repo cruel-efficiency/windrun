@@ -308,27 +308,17 @@
   border: 1px solid var(--color-border);
 }
 
-.topXBadge {
-  font-size: 8px;
-  font-weight: var(--weight-bold);
-  color: var(--color-accent2);
-  background: rgba(212, 201, 160, 0.15);
-  padding: 1px 4px;
-  border-radius: var(--radius-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
 .rating {
   font-family: var(--font-display);
   font-weight: var(--weight-bold);
-  font-size: var(--text-caption);
+  font-size: var(--text-body);
   color: var(--color-accent);
 }
 
-.gamesPlayed {
-  font-size: 10px;
-  color: var(--color-text-muted);
+.topXRank {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent2);
 }
 
 /* Simple PlayerCard styles */
@@ -358,22 +348,17 @@
   gap: 2px;
 }
 
-.topXBadgeSimple {
-  font-size: 10px;
-  font-weight: var(--weight-bold);
-  color: var(--color-accent2);
-  background: rgba(212, 201, 160, 0.15);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
 .ratingSimple {
   font-family: var(--font-display);
   font-weight: var(--weight-bold);
   font-size: var(--text-title);
   color: var(--color-accent);
+}
+
+.topXSimple {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-medium);
+  color: var(--color-accent2);
 }
 
 .simpleStats {
@@ -692,7 +677,7 @@
 /* 3-Panel Layout */
 .draftThreePanel {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
   gap: var(--space-sm);
   margin-bottom: var(--space-sm);
 }
@@ -1011,7 +996,8 @@ a.filledSlot:hover .draftSlotIcon {
 
 /* Wide pool grid (spells) - 6 columns */
 .poolGridWide {
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, auto);
+  gap: 2px;
 }
 
 /* Pool section sizing for narrow sections */

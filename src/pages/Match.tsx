@@ -147,11 +147,13 @@ function formatRating(rating: number): string {
   return Math.round(rating).toLocaleString()
 }
 
-function getTopXLabel(topX: number): string | null {
-  if (topX <= 100) return 'TOP 100'
-  if (topX <= 500) return 'TOP 500'
-  if (topX <= 1000) return 'TOP 1K'
-  return null
+function formatTopX(topX: number): string {
+  if (topX >= 10000000) return 'Top 10M'
+  if (topX >= 10000) return 'Top 10K'
+  if (topX >= 5000) return 'Top 5K'
+  if (topX >= 2500) return 'Top 2.5K'
+  if (topX >= 1000) return 'Top 1K'
+  return `Top ${topX}`
 }
 
 // Get winrate color gradient (red to green) - more extreme visibility
@@ -262,7 +264,6 @@ interface PlayerCardProps {
 
 function PlayerCard({ player, isWinner, side, pickOrderMap, abilityWinrates, abilityPairs, simple = false }: PlayerCardProps) {
   const hero = getHeroById(player.hero)
-  const topXLabel = getTopXLabel(player.topX)
 
   const resolvedAbilities = player.abilities.map(abilityId => {
     const pickOrder = pickOrderMap.get(abilityId)
@@ -480,8 +481,9 @@ function PlayerCard({ player, isWinner, side, pickOrderMap, abilityWinrates, abi
         </a>
       )}
       <div className={styles.heroInfoSimple}>
-        {topXLabel && <span className={styles.topXBadgeSimple}>{topXLabel}</span>}
         <span className={styles.ratingSimple}>{formatRating(player.rating)}</span>
+        {player.topX > 0 && player.topX < 10000000 && <span className={styles.topXSimple}>{formatTopX(player.topX)}</span>}
+        {player.topX >= 10000000 && player.winLoss.total < 50 && <span className={styles.topXSimple}>Noob</span>}
       </div>
     </div>
   ) : (
@@ -495,11 +497,9 @@ function PlayerCard({ player, isWinner, side, pickOrderMap, abilityWinrates, abi
           />
         </a>
       )}
-      {topXLabel && <span className={styles.topXBadge}>{topXLabel}</span>}
       <span className={styles.rating}>{formatRating(player.rating)}</span>
-      <span className={styles.gamesPlayed}>
-        {player.winLoss.total.toLocaleString()} games
-      </span>
+      {player.topX > 0 && player.topX < 10000000 && <span className={styles.topXRank}>{formatTopX(player.topX)}</span>}
+      {player.topX >= 10000000 && player.winLoss.total < 50 && <span className={styles.topXRank}>Noob</span>}
     </div>
   )
 
