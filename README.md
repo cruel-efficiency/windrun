@@ -100,20 +100,6 @@ These are fetched once on app load and cached client-side.
 - **Colors**: CSS custom properties. Dominant dark with sharp accent colors.
 - **Animations**: Orchestrated page-load staggered reveals, hover micro-interactions. Motion for React, CSS-only where possible.
 
-## Project Phases
-
-### Pages to Do:
-- [ ] Separate draft replay widget (deep-link)
-- [ ] Player profile page
-- [ ] Player match history
-- [ ] Player advanced stats
-
-### Authentication
-- [ ] Login/logout redirect flow
-- [ ] User state via /user/verify
-- [ ] Protected UI elements
-- [ ] New API endpoints on backend (userLogin, userLogout, userVerify)
-
 ## Development
 
 ```bash
@@ -144,8 +130,6 @@ scp -r dist/* user@server:/var/www/windrun/
 ## Important Notes
 
 - Auth handled entirely via HTTP-only cookies set by the API
-- Draft replay widget designed for future deep-link analysis capability
-- API needs new endpoints: about, predictionGame, userLogin, userLogout, userVerify
 - The API returns 503 with Retry-After header when data is being recalculated
 
 ## License
