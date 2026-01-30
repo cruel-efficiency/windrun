@@ -85,6 +85,27 @@ export function AboutPage() {
         </section>
 
         <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>API Usage</h2>
+          <p className={styles.text}>
+            The API is primarily designed to power this frontend. If you'd like to use it for a project,
+            please chat to Noxville on Discord and get approval first. It would be greatly appreciated if you
+            also used a custom user-agent to identify your application.
+          </p>
+          <p className={styles.text}>In general:</p>
+          <ul className={styles.list}>
+            <li>Try and cache results where you can</li>
+            <li>Do not make too many concurrent requests - also leave a gap between consecutive requests</li>
+            <li>
+              Do not to programmatically request "slow" queries:{' '}
+              <code className={styles.code}>/abilities/$abilityId</code>,{' '}
+              <code className={styles.code}>/heroes/$heroId</code>,{' '}
+              <code className={styles.code}>/players/$playerId/matches</code>,{' '}
+              <code className={styles.code}>/players/$playerId/stats</code>
+            </li>
+          </ul>
+        </section>
+
+        <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Contact</h2>
           <p className={styles.text}>
             For questions, feedback, or bug reports, please reach out via the community channels.

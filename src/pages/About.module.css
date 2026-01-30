@@ -41,3 +41,12 @@
 .list strong {
   color: var(--color-accent);
 }
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--color-bg-elevated);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent2);
+}
