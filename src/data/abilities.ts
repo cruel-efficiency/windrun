@@ -61520,5 +61520,12 @@ export function getAbilityByShortName(shortName: string): Ability | undefined {
   return abilitiesByShortName[shortName]
 }
 
+/** Check if a valveId is truly an ability */
+export function isAbilityId(id: number): boolean {
+  return (id > 0
+    && id != 5368 // Ignore Greevil's Greed
+  );
+}
+
 /** Total number of abilities */
 export const ABILITY_COUNT = 3075
