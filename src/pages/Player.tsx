@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { usePlayerData, usePlayerMatches, usePlayerStats, useAuth } from '../api'
-import { getAbilityById, getHeroById } from '../data'
+import { getAbilityById, getHeroById, isAbilityId } from '../data'
 import { heroMiniUrl, heroImageUrl } from '../config'
 import type { PlayerMatch, PlayerMatchPlayer, SpellStat, WinLossStats } from '../types/player'
 import styles from './Player.module.css'
@@ -402,6 +402,7 @@ export function PlayerPage() {
                 }))
                 .sort((a, b) => abilitySort === 'games' ? b.total - a.total : b.winrate - a.winrate)
                 .map(({ abilityId, wins, losses, winrate, total, avgPickPosition }) => {
+                  if (!isAbilityId(abilityId)) return null
                   const ability = getAbilityById(abilityId)
                   return ability ? (
                     <div key={abilityId} className={styles.statsListRow}>
